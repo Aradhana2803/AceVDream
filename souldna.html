@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Souldna – Your Soul’s DNA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      background: url('images/background5.jpg') no-repeat center center fixed;
+      background-size: cover;
+      
+      margin: 0;
+      font-family: 'Cinzel', serif;
+      
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      color: #444;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .tab {
+      padding: 12px 24px;
+      margin: 0 10px;
+      border-radius: 25px;
+      cursor: pointer;
+      border: 2px solid #888;
+      transition: 0.3s;
+      box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .tab.active {
+      background: #444;
+      color: white;
+      border-color: #444;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    label, h3 {
+      font-weight: bold;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .entry, .note-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .textarea, textarea {
+      width: 100%;
+      min-height: 260px;
+      padding: 15px;
+      border-radius: 12px;
+      border: 1.5px solid #ccc;
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      resize: vertical;
+      background-color: #fdfdfd;
+    }
+
+    input[type="text"], input[type="date"], select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid #bbb;
+      background-color: #fdfdfd;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 10px 18px;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 10px;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background: #555;
+    }
+
+    .notes-container {
+      margin-top: 15px;
+    }
+
+    .color-tag {
+      width: 20px;
+      height: 20px;
+      display: inline-block;
+      border-radius: 50%;
+      margin-right: 8px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: 0.2s;
+    }
+
+    .color-tag:hover {
+      border: 2px solid #444;
+    }
+
+    .colors {
+      display: flex;
+      margin-top: 10px;
+    }
+
+    #saved-entry {
+      background-color: #f9f9f9;
+      padding: 15px;
+      border-radius: 15px;
+      margin-top: 20px;
+    }
+
+    #savedMood {
+      font-weight: bold;
+    }
+
+    .note-actions {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+    }
+
+    .note-actions span {
+      margin-left: 10px;
+      cursor: pointer;
+      font-size: 1.2em;
+    }
+
+    .note-actions span:hover {
+      color: #000;
+    }
+    .note-card h4, .note-card p {
+        white-space: pre-wrap; /* preserves multiline text and spacing */
+        margin: 5px 0;
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 1.8em; }
+      .tab { padding: 10px; margin: 4px; font-size: 0.9em; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Souldna – Your Soul’s DNA</h1>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('diary')">Secret Diary</div>
+    <div class="tab" onclick="switchTab('notes')">Notes & Lists</div>
+  </div>
+
+  <div class="container">
+    <div id="diary" class="section active">
+      <label for="diary-date">Select Date:</label>
+      <input type="date" id="diary-date">
+
+      <div class="entry">
+        <h3>Today’s Journal</h3>
+        <label>Mood:</label>
+        <select id="mood">
+          <option>🙂 Happy</option>
+          <option>😞 Sad</option>
+          <option>😌 Calm</option>
+          <option>😫 Tired</option>
+          <option>😡 Angry</option>
+        </select>
+
+        <label>Thoughts:</label>
+        <textarea id="diary-text" placeholder="Pour your heart out..."></textarea>
+        <button onclick="saveDiaryEntry()">Save Diary</button>
+
+        <label style="margin-top:10px; display:block;">
+          <input type="checkbox" id="autoSaveToggle"> Auto-Save as you type
+        </label>
+
+        <div class="entry" id="saved-entry" style="display:none;">
+          <h4>Saved Entry</h4>
+          <p><strong>Mood:</strong> <span id="savedMood"></span></p>
+          <p><strong>Thoughts:</strong></p>
+          <p id="savedThoughts"></p>
+        </div>
+      </div>
+    </div>
+
+    <div id="notes" class="section">
+      <div class="entry">
+        <h3>Create New Note</h3>
+        <input type="text" id="noteTitle" placeholder="Title..." />
+        <textarea id="noteContent" placeholder="Write your note..."></textarea>
+
+        <label>Pick a tag color:</label>
+        <div class="colors">
+          <div class="color-tag" style="background: #ff6666" onclick="setColorTag(this, '#ff6666')"></div>
+          <div class="color-tag" style="background: #ffcc66" onclick="setColorTag(this, '#ffcc66')"></div>
+          <div class="color-tag" style="background: #66ff66" onclick="setColorTag(this, '#66ff66')"></div>
+          <div class="color-tag" style="background: #66ccff" onclick="setColorTag(this, '#66ccff')"></div>
+        </div>
+
+        <button onclick="saveNote()">Save Note</button>
+      </div>
+      <h2 id="notesTitle" style="cursor:pointer; user-select:none;">Your Notes ▼</h2>
+
+      <div class="notes-container" id="notesContainer"></div>
+    </div>
+  </div>
+
+  <script>
+    let selectedColor = '#ffffff';
+    let editingNoteId = null;
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function saveDiaryEntry() {
+      const date = document.getElementById('diary-date').value;
+      const mood = document.getElementById('mood').value;
+      const entry = document.getElementById('diary-text').value;
+
+      if (!date) {
+        alert("Please select a date.");
+        return;
+      }
+
+      const data = { mood, entry };
+      localStorage.setItem(`diary-${date}`, JSON.stringify(data));
+      alert("Diary saved for " + date + "!");
+      displaySavedEntry(data);
+      document.getElementById('diary-text').value = '';
+    }
+
+    function displaySavedEntry(data) {
+      document.getElementById('savedMood').innerText = data.mood;
+      document.getElementById('savedThoughts').innerText = data.entry;
+      document.getElementById('saved-entry').style.display = 'block';
+    }
+
+    // Load saved diary entry when date changes
+    document.getElementById('diary-date').addEventListener('change', function() {
+      const date = this.value;
+      if (!date) return;
+      const saved = localStorage.getItem(`diary-${date}`);
+      if (saved) {
+        const data = JSON.parse(saved);
+        document.getElementById('mood').value = data.mood;
+        document.getElementById('diary-text').value = data.entry;
+        displaySavedEntry(data);
+      } else {
+        document.getElementById('mood').value = '🙂 Happy';
+        document.getElementById('diary-text').value = '';
+        document.getElementById('saved-entry').style.display = 'none';
+      }
+    });
+
+    // Auto-save toggle
+    document.getElementById('autoSaveToggle').addEventListener('change', function() {
+      if (this.checked) {
+        document.getElementById('diary-text').addEventListener('input', autoSaveDiary);
+        document.getElementById('mood').addEventListener('change', autoSaveDiary);
+      } else {
+        document.getElementById('diary-text').removeEventListener('input', autoSaveDiary);
+        document.getElementById('mood').removeEventListener('change', autoSaveDiary);
+      }
+    });
+
+    function autoSaveDiary() {
+      const date = document.getElementById('diary-date').value;
+      if (!date) return;
+      const mood = document.getElementById('mood').value;
+      const entry = document.getElementById('diary-text').value;
+      const data = { mood, entry };
+      localStorage.setItem(`diary-${date}`, JSON.stringify(data));
+      displaySavedEntry(data);
+    }
+
+    function setColorTag(element, color) {
+      selectedColor = color;
+      document.querySelectorAll('.color-tag').forEach(tag => tag.style.border = '2px solid transparent');
+      element.style.border = '2px solid #333';
+    }
+
+    function saveNote() {
+      const title = document.getElementById('noteTitle').value.trim();
+      const content = document.getElementById('noteContent').value.trim();
+
+      if (!title && !content) {
+        alert("Please enter a title or some content for the note.");
+        return;
+      }
+
+      const note = { title, content, color: selectedColor };
+
+      if (editingNoteId) {
+        localStorage.setItem(editingNoteId, JSON.stringify(note));
+        editingNoteId = null;
+      } else {
+        const key = `note-${Date.now()}`;
+        localStorage.setItem(key, JSON.stringify(note));
+      }
+
+      clearNoteInput();
+      loadNotes();
+    }
+
+    function clearNoteInput() {
+      document.getElementById('noteTitle').value = '';
+      document.getElementById('noteContent').value = '';
+      selectedColor = '#ffffff';
+      document.querySelectorAll('.color-tag').forEach(tag => tag.style.border = '2px solid transparent');
+    }
+
+    function loadNotes() {
+      const notesContainer = document.getElementById('notesContainer');
+      notesContainer.innerHTML = '';
+
+      const keys = Object.keys(localStorage).filter(k => k.startsWith('note-'));
+
+      // Sort keys by timestamp descending (newest first)
+      keys.sort((a, b) => parseInt(b.split('-')[1]) - parseInt(a.split('-')[1]));
+
+      if (keys.length === 0) {
+        notesContainer.innerHTML = '<p style="text-align:center; color:#666;">No notes saved yet.</p>';
+        return;
+      }
+
+      keys.forEach(key => {
+        const note = JSON.parse(localStorage.getItem(key));
+
+        const noteCard = document.createElement('div');
+        noteCard.className = 'note-card';
+        noteCard.style.borderLeft = `8px solid ${note.color || '#fff'}`;
+        noteCard.style.backgroundColor = '#fff';
+
+        const title = document.createElement('h4');
+        title.textContent = note.title || '(No Title)';
+
+        const content = document.createElement('p');
+        content.textContent = note.content || '(No Content)';
+
+        // Action buttons: Edit and Delete
+        const actions = document.createElement('div');
+        actions.className = 'note-actions';
+
+        const editBtn = document.createElement('span');
+        editBtn.title = 'Edit note';
+        editBtn.innerHTML = '✏️';
+        editBtn.onclick = () => editNote(key);
+
+        const deleteBtn = document.createElement('span');
+        deleteBtn.title = 'Delete note';
+        deleteBtn.innerHTML = '🗑️';
+        deleteBtn.onclick = () => {
+          if (confirm('Are you sure you want to delete this note?')) {
+            localStorage.removeItem(key);
+            loadNotes();
+          }
+        };
+
+        actions.appendChild(editBtn);
+        actions.appendChild(deleteBtn);
+
+        noteCard.appendChild(actions);
+        noteCard.appendChild(title);
+        noteCard.appendChild(content);
+
+        notesContainer.appendChild(noteCard);
+      });
+    }
+
+    function editNote(key) {
+      const note = JSON.parse(localStorage.getItem(key));
+      document.getElementById('noteTitle').value = note.title || '';
+      document.getElementById('noteContent').value = note.content || '';
+      selectedColor = note.color || '#ffffff';
+      editingNoteId = key;
+
+      // Highlight the selected color tag
+      document.querySelectorAll('.color-tag').forEach(tag => {
+        tag.style.border = '2px solid transparent';
+        if (tag.style.backgroundColor === selectedColor || tag.style.background === selectedColor) {
+          tag.style.border = '2px solid #333';
+        }
+      });
+
+      // Switch to notes tab automatically
+      switchTab('notes');
+    }
+
+    // Load notes on page load
+    window.onload = () => {
+      loadNotes();
+
+      // Set default color tag border none on load
+      document.querySelectorAll('.color-tag').forEach(tag => tag.style.border = '2px solid transparent');
+      function setColorTag(element, color) {
+        selectedColor = color;
+        document.querySelectorAll('.color-tag').forEach(tag => tag.style.border = '2px solid transparent');
+        element.style.border = '2px solid #000';
+      }
+  
+      function saveNote() {
+        const title = document.getElementById('noteTitle').value.trim();
+        const content = document.getElementById('noteContent').value.trim();
+  
+        if (!title || !content) {
+          alert("Title and content cannot be empty!");
+          return;
+        }
+  
+        const note = {
+          id: editingNoteId || Date.now(),
+          title,
+          content,
+          color: selectedColor
+        };
+  
+        let notes = JSON.parse(localStorage.getItem("souldna-notes") || "[]");
+  
+        if (editingNoteId) {
+          notes = notes.map(n => n.id === editingNoteId ? note : n);
+          editingNoteId = null;
+        } else {
+          notes.push(note);
+        }
+  
+        localStorage.setItem("souldna-notes", JSON.stringify(notes));
+        document.getElementById('noteTitle').value = '';
+        document.getElementById('noteContent').value = '';
+        selectedColor = '#ffffff';
+        document.querySelectorAll('.color-tag').forEach(tag => tag.style.border = '2px solid transparent');
+        renderNotes();
+      }
+  
+      function renderNotes() {
+        const container = document.getElementById('notesContainer');
+        container.innerHTML = '';
+        const notes = JSON.parse(localStorage.getItem("souldna-notes") || "[]");
+  
+        notes.forEach(note => {
+          const card = document.createElement('div');
+          card.className = 'note-card';
+          card.style.borderLeft = `10px solid ${note.color}`;
+  
+          card.innerHTML = `
+            <div class="note-actions">
+              <span onclick="editNote(${note.id})">✏️</span>
+              <span onclick="deleteNote(${note.id})">🗑️</span>
+            </div>
+            <h4>${note.title}</h4>
+            <p>${note.content}</p>
+          `;
+  
+          container.appendChild(card);
+        });
+      }
+  
+      function editNote(id) {
+        const notes = JSON.parse(localStorage.getItem("souldna-notes") || "[]");
+        const note = notes.find(n => n.id === id);
+        if (!note) return;
+        document.getElementById('noteTitle').value = note.title;
+        document.getElementById('noteContent').value = note.content;
+        selectedColor = note.color;
+        editingNoteId = id;
+  
+        document.querySelectorAll('.color-tag').forEach(tag => {
+          tag.style.border = tag.style.backgroundColor === selectedColor ? '2px solid #000' : '2px solid transparent';
+        });
+      }
+  
+      function deleteNote(id) {
+        let notes = JSON.parse(localStorage.getItem("souldna-notes") || "[]");
+        notes = notes.filter(n => n.id !== id);
+        localStorage.setItem("souldna-notes", JSON.stringify(notes));
+        renderNotes();
+      }
+  
+      // Initial render on load
+      renderNotes();
+    
+  
+    };
+    
+  </script>
+</body>
+</html>

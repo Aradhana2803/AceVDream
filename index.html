@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ace vdream</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+  <header>
+    <h1>Ace vdream</h1>
+    <p>Your personal space to plan, dream, and conquer.</p>
+  </header>
+
+  <main>
+      <section id="todo">
+         
+          <h2>just one day<button id="open-todo" class="round-on-btn">on</button></h2>
+         
+        
+      </section>
+      
+
+      <section id="tracker">
+      <h2>seven Taekr<button onclick="window.open('seven.html', '_blank')" class="round-on-btn">ON</button></h2>
+      
+      <!-- Add planner content -->
+      </section>
+      <section id="planner">
+        <h2>map of month<button onclick="window.open('calender.html', '_blank')" class="round-on-btn">ON</button></h2>
+
+        <!-- Add reminders -->
+      </section>
+      <section id="habit">
+      <h2>dream glow<button onclick="window.open('dreamglow.html', '_blank')" class="round-on-btn">ON</button></h2>
+      <ul id="reminder-list"></ul>
+      <!-- Add reminders -->
+      </section>
+
+    <section id="journal">
+      <h2>souldna<button onclick="window.open('souldna.html', '_blank')" class="round-on-btn">ON</button></h2>
+      <!-- Add journal text area -->
+    </section>
+  </main>
+
+ 
+  
+
+  
+  <!-- Just One Day To-Do List Section -->
+  <section id="just-one-day"><button id="close-todo" class="round-off-btn">✕</button>
+
+    <header>
+      <h1>Just One Day</h1>
+      <p>Manage your tasks and stay productive</p>
+    </header>
+    
+    <div id="tasks">
+      <!-- Task List Goes Here -->
+    </div>
+  
+    <!-- Input for Adding Tasks -->
+    <input type="text" id="task-input" placeholder="Write a task">
+    
+    <!-- Task Priority Dropdown -->
+    <select id="task-priority">
+      <option value="red">Very Important (Red)</option>
+      <option value="yellow">Medium Importance (Yellow)</option>
+      <option value="green">Low Priority (Green)</option>
+    </select>
+    
+    <button id="add-task">Add Task</button>
+  
+    <div id="task-list">
+      <!-- Task Items will be added here -->
+    </div>
+  </section>
+  
+
+  <script src="script.js"></script>
+  
+</body>
+
+
+
+
+

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Map of Month</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel&family=Roboto&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      background: url('images/2025.jpg') no-repeat center center fixed;
+      background-size: 100% 100%;
+      font-family: 'Cinzel', serif;
+      color: rgb(236, 211, 153);
+      margin: 0;
+      padding: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .bg-wallpaper {
+        background-position: center center;
+      }
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 3.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .month-nav {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    .month-nav button {
+      background-color: #a29bfe;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s;
+    }
+
+    .month-nav button:hover {
+      background-color: #6c5ce7;
+    }
+
+    #monthYear {
+      font-size: 1.8rem;
+      color: rgb(255, 234, 167);
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .day-name {
+      font-weight: bold;
+      text-align: center;
+      font-size: 1.1rem;
+      color: #ffeaa7;
+    }
+
+    .day {
+      background: rgba(26, 24, 24, 0.1);
+      padding: 20px 10px;
+      height: 120px;
+      border-radius: 10px;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+
+    .day:hover {
+      background: rgba(240, 236, 236, 0.2);
+    }
+
+    .day-number {
+      font-size: 2rem;
+      margin-bottom: 5px;
+    }
+
+    .army-bomb {
+      width: 22px;
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+    }
+
+    .event-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #0d0d0e;
+      padding: 20px;
+      border-radius: 15px;
+      display: none;
+      z-index: 9999;
+      width: 300px;
+      box-shadow: 0 0 20px white;
+    }
+
+    .event-popup.active {
+      display: block;
+    }
+
+    .event-popup input, .event-popup button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 8px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+
+    .event-popup button {
+      background-color: #b31ad9;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .event-popup ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 10px;
+    }
+
+    .event-popup ul li {
+      background: rgba(206, 192, 146, 0.2);
+      padding: 5px 10px;
+      border-radius: 10px;
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+    }
+
+    .event-popup ul li button {
+      background: red;
+      color: white;
+      border: none;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Map of Month</h1>
+
+  
+  <div class="month-nav">
+    <button onclick="prevMonth()">⬅ Prev</button>
+    <h2 id="monthYear"></h2>
+    <button onclick="nextMonth()">Next ➡</button>
+    <select id="month-select" onchange="goToSelectedDate()"></select>
+    <select id="year-select" onchange="goToSelectedDate()"></select>
+  </div>
+  
+
+  <div class="calendar" id="calendar"></div>
+
+  <div class="event-popup" id="event-popup">
+    <h3 id="popup-date"></h3>
+    <input type="text" id="event-input" placeholder="Add an event..." />
+    <button onclick="addEvent()">Add Event</button>
+    <ul id="event-list"></ul>
+    <button onclick="closePopup()">Close</button>
+  </div>
+
+  <script>
+    const calendar = document.getElementById('calendar');
+    const monthYear = document.getElementById('monthYear');
+    const eventPopup = document.getElementById('event-popup');
+    const eventInput = document.getElementById('event-input');
+    const eventList = document.getElementById('event-list');
+    const popupDate = document.getElementById('popup-date');
+
+    let currentMonth = 0;
+    let currentYear = 2025;
+    let events = JSON.parse(localStorage.getItem('events')) || {};
+    let selectedDay = '';
+
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    function renderCalendar() {
+      calendar.innerHTML = '';
+      monthYear.innerText = `${months[currentMonth]} ${currentYear}`;
+
+      // Day headers
+      days.forEach(day => {
+        const dayName = document.createElement('div');
+        dayName.className = 'day-name';
+        dayName.innerText = day;
+        calendar.appendChild(dayName);
+      });
+
+      const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+      const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+      for (let i = 0; i < firstDay; i++) {
+        const emptyBox = document.createElement('div');
+        calendar.appendChild(emptyBox);
+      }
+
+      for (let d = 1; d <= totalDays; d++) {
+        const dayBox = document.createElement('div');
+        dayBox.className = 'day';
+        dayBox.onclick = () => openPopup(d);
+
+        const dayNumber = document.createElement('div');
+        dayNumber.className = 'day-number';
+        dayNumber.innerText = d;
+        dayBox.appendChild(dayNumber);
+
+        const key = `${currentYear}-${currentMonth + 1}-${d}`;
+        if (events[key]?.length) {
+          const bomb = document.createElement('img');
+          bomb.src = 'https://i.ibb.co/3z2fQ7g/army-bomb-icon.png';
+          bomb.alt = 'Event';
+          bomb.className = 'army-bomb';
+          dayBox.appendChild(bomb);
+        }
+
+        calendar.appendChild(dayBox);
+      }
+    }
+
+    function openPopup(day) {
+      selectedDay = `${currentYear}-${currentMonth + 1}-${day}`;
+      eventPopup.classList.add('active');
+      popupDate.innerText = `Events for ${months[currentMonth]} ${day}`;
+      eventInput.value = '';
+      updateEventList();
+    }
+
+    function closePopup() {
+      eventPopup.classList.remove('active');
+    }
+
+    function addEvent() {
+      const input = eventInput.value.trim();
+      if (!input) return;
+      if (!events[selectedDay]) events[selectedDay] = [];
+      if (events[selectedDay].length >= 10) {
+        alert('Max 10 events allowed per day!');
+        return;
+      }
+      events[selectedDay].push(input);
+      localStorage.setItem('events', JSON.stringify(events));
+      eventInput.value = '';
+      updateEventList();
+      renderCalendar();
+    }
+
+    function updateEventList() {
+      eventList.innerHTML = '';
+      (events[selectedDay] || []).forEach((ev, idx) => {
+        const li = document.createElement('li');
+        li.innerHTML = `${ev} <button onclick="deleteEvent(${idx})">×</button>`;
+        eventList.appendChild(li);
+      });
+    }
+
+    function deleteEvent(index) {
+      events[selectedDay].splice(index, 1);
+      if (events[selectedDay].length === 0) delete events[selectedDay];
+      localStorage.setItem('events', JSON.stringify(events));
+      updateEventList();
+      renderCalendar();
+    }
+
+    function prevMonth() {
+      currentMonth--;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      renderCalendar();
+    }
+
+    function nextMonth() {
+      currentMonth++;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      }
+      renderCalendar();
+    }
+
+    renderCalendar();
+    const monthSelect = document.getElementById("month-select");
+const yearSelect = document.getElementById("year-select");
+
+// Populate month dropdown
+months.forEach((month, index) => {
+  const option = document.createElement("option");
+  option.value = index;
+  option.text = month;
+  monthSelect.appendChild(option);
+});
+
+// Populate year dropdown from 2010 to 2030
+for (let y = 2025; y <= 2040; y++) {
+  const option = document.createElement("option");
+  option.value = y;
+  option.text = y;
+  yearSelect.appendChild(option);
+}
+
+// Set default selected options
+function updateDropdowns() {
+  monthSelect.value = currentMonth;
+  yearSelect.value = currentYear;
+}
+
+// Jump to selected date
+function goToSelectedDate() {
+  currentMonth = parseInt(monthSelect.value);
+  currentYear = parseInt(yearSelect.value);
+  renderCalendar();
+}
+updateDropdowns();
+
+  </script>
+</body>
+</html>

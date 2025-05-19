@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dream Glow - Daily Routine Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel&display=swap" rel="stylesheet">
+  <style>
+    body { 
+      background: url('images/background3.jpg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Cinzel', serif;
+      background-color: #0a0a23;
+      color: #f0e6f6;
+      padding: 2rem;
+      margin: 0;
+    }
+    h1 {
+      text-align: center;
+      font-size: 3rem;
+      color: #e0b3ff;
+      margin-bottom: 1rem;
+    }
+    h2 {
+      text-align: center;
+      color: #cfa9ff;
+      margin-bottom: 1rem;
+    }
+    .date-selector, .routine-container {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #9d4edd;
+      max-width: 800px;
+      margin: 1.5rem auto;
+    }
+    input, select, button {
+      padding: 0.8rem;
+      margin: 0.5rem 0.5rem 1rem 0;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+    }
+    input[type="text"], input[type="time"], input[type="date"] {
+      width: 200px;
+    }
+    button {
+      background-color: #9d4edd;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #7c3aed;
+    }
+    .task-form {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      align-items: center;
+    }
+    .task-item {
+      background-color: rgba(255, 255, 255, 0.1);
+      margin: 0.5rem 0;
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      justify-content: space-between;
+      transition: background 0.3s ease;
+    }
+    .task-item:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+    .checkbox {
+      transform: scale(1.3);
+      margin-right: 10px;
+    }
+    .delete-btn {
+      background-color: #ff4d6d;
+      border: none;
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: 16px;
+      line-height: 20px;
+      text-align: center;
+      cursor: pointer;
+    }
+    @media (max-width: 600px) {
+      .task-form {
+        flex-direction: column;
+      }
+      input[type="text"], input[type="time"], input[type="date"] {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Dream Glow</h1>
+  <div class="date-selector">
+    <h2>Select a Date to Begin</h2>
+    <input type="date" id="selected-date">
+    <button onclick="showTemplate()">Continue</button>
+  </div>
+
+  <div id="template" style="display:none;">
+    <div class="routine-container">
+      <h2>Film Out</h2>
+      <div class="task-form">
+        <input type="text" id="task-desc" placeholder="Task Description">
+        <input type="time" id="task-time">
+        <div>
+          <label>Start:</label><br>
+          <input type="date" id="task-start">
+        </div>
+        <div>
+          <label>End:</label><br>
+          <input type="date" id="task-end">
+        </div>
+        <button onclick="addRoutineTask()">Add Routine</button>
+      </div>
+      <div id="routine-list"></div>
+    </div>
+
+    <div class="routine-container" id="analyzer">
+      <h2>Dream Analyzer</h2>
+      <p><strong>Score:</strong> <span id="score">0</span> / 100</p>
+      <p id="message" style="margin-top: 0.5rem; font-style: italic;"></p>
+    </div>
+    
+
+   
+
+  <script>
+    const routineData = {};
+
+    function showTemplate() {
+      const selectedDate = document.querySelector("#selected-date").value;
+      if (!selectedDate) return alert("Please select a date first.");
+      document.querySelector("#template").style.display = "block";
+      displayRoutine();
+    }
+
+    function addRoutineTask() {
+      const desc = document.querySelector("#task-desc").value.trim();
+      const time = document.querySelector("#task-time").value;
+      const start = new Date(document.querySelector("#task-start").value);
+      const end = new Date(document.querySelector("#task-end").value);
+
+      if (!desc || !time || isNaN(start) || isNaN(end)) {
+        alert("Fill all fields properly");
+        return;
+      }
+
+      const current = new Date(start);
+      while (current <= end) {
+        const key = current.toISOString().split('T')[0];
+        if (!routineData[key]) routineData[key] = [];
+        routineData[key].push({ desc, time });
+        current.setDate(current.getDate() + 1);
+      }
+
+      // Reset form
+      document.querySelector("#task-desc").value = "";
+      document.querySelector("#task-time").value = "";
+      document.querySelector("#task-start").value = "";
+      document.querySelector("#task-end").value = "";
+
+      displayRoutine();
+    }
+
+    function displayRoutine() {
+      const selected = document.querySelector("#selected-date").value;
+      const list = document.querySelector("#routine-list");
+      list.innerHTML = "";
+
+      if (routineData[selected]) {
+        routineData[selected]
+          .sort((a, b) => a.time.localeCompare(b.time))
+          .forEach((task, index) => {
+            const item = document.createElement('div');
+            item.className = "task-item";
+            item.innerHTML = `
+              <div>
+                <input type="checkbox" class="checkbox">
+                <strong>${task.time}</strong> - ${task.desc}
+              </div>
+              <button class="delete-btn" onclick="deleteRoutineTask('${selected}', ${index})">&times;</button>
+            `;
+            list.appendChild(item);
+          });
+      } else {
+        list.innerHTML = "<p>No tasks for this date yet.</p>";
+      }
+    }
+
+    function deleteRoutineTask(date, index) {
+      routineData[date].splice(index, 1);
+      if (routineData[date].length === 0) delete routineData[date];
+      displayRoutine();
+    }
+
+    document.querySelector("#selected-date").addEventListener("change", () => {
+      document.querySelector("#template").style.display = "block";
+      displayRoutine();
+    });
+    function displayRoutine() {
+      const selected = document.querySelector("#selected-date").value;
+      const list = document.querySelector("#routine-list");
+      list.innerHTML = "";
+    
+      if (routineData[selected]) {
+        routineData[selected]
+          .sort((a, b) => a.time.localeCompare(b.time))
+          .forEach((task, index) => {
+            const item = document.createElement('div');
+            item.className = "task-item";
+    
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.className = "checkbox";
+            checkbox.checked = task.completed || false;
+            checkbox.addEventListener("change", () => {
+              task.completed = checkbox.checked;
+              updateAnalyzer(); // update analyzer on check/uncheck
+            });
+    
+            const taskText = document.createElement("span");
+            taskText.innerHTML = `<strong>${task.time}</strong> - ${task.desc}`;
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "delete-btn";
+            deleteBtn.innerHTML = "&times;";
+            deleteBtn.addEventListener("click", () => {
+            deleteRoutineTask(selected, index);
+        });
+            item.appendChild(checkbox);
+            item.appendChild(taskText);
+            list.appendChild(item);
+          });
+      } else {
+        list.innerHTML = "<p>No tasks for this date yet.</p>";
+      }
+    
+      updateAnalyzer(); // always update analyzer after rendering
+    }
+    function updateAnalyzer() {
+      const selected = document.querySelector("#selected-date").value;
+      const scoreDisplay = document.getElementById("score");
+      const message = document.getElementById("message");
+    
+      const tasks = routineData[selected] || [];
+      const total = tasks.length;
+      const done = tasks.filter(t => t.completed).length;
+    
+      let score = 0;
+    
+      // Bonus for having 5 or more tasks
+      if (total >= 3) score += 20;
+    
+      // Per-task completion score
+      if (total > 0) {
+        const perTask = 80 / total;
+        score += done * perTask;
+      }
+    
+      score = Math.min(100, Math.round(score));
+      scoreDisplay.textContent = score;
+    
+      // Motivational message
+      if (score === 100) {
+        message.textContent = "🌟 Perfect day! You crushed it!";
+      } else if (score >= 70) {
+        message.textContent = "💪 You're doing amazing!";
+      } else if (score >= 40) {
+        message.textContent = "✨ Keep it going, you're halfway there.";
+      } else {
+        message.textContent = "🚀 Start small, keep growing!";
+      }
+    }
+    
+  </script>
+</body>
+</html>

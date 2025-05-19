@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Seven Taekr - Weekly Planner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      background: url('images/52964797e60419120a2da285d07a6053.jpg') no-repeat center center fixed;
+      background-attachment: fixed; 
+      background-size: cover;
+      font-family: 'Cinzel', serif;
+      color: rgb(8, 7, 7);
+      height: 100%;
+      margin: 0;
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+      font-size: 5rem;
+      margin-bottom: 2rem;
+    }
+    .week-scroll {
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      padding: 10px 0;
+    }
+    .week-scroll button {
+      flex: 0 0 auto;
+      background-color: transparent;
+      border: 1px solid white;
+      color: white;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 10px;
+      white-space: pre-line;
+    }
+    .week-scroll .selected {
+      color: purple;
+    }
+    .bts-week {
+      display: none;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .bts-week.active {
+      display: flex;
+    }
+    .day-box {
+      background-color: rgba(251, 243, 243, 0.6);
+      padding: 1rem;
+      border-radius: 15px;
+      width: 250px;
+    }
+    .day-box h3 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .task-list {
+      margin-top: 10px;
+    }
+    .task {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .task input[type="checkbox"] {
+      margin-right: 8px;
+      width: 18px;
+      height: 18px;
+    }
+    input[type="text"] {
+      width: 80%;
+      margin-bottom: 5px;
+      border-radius: 5px;
+      padding: 5px;
+    }
+    button.add-task {
+      width: 15%;
+      padding: 5px;
+      margin-left: 5px;
+      font-weight: bold;
+      border-radius: 5px;
+      background-color: rgb(7, 6, 6);
+      color: white;
+      cursor: pointer;
+    }
+    .task.completed span {
+      text-decoration: line-through;
+    }
+    .delete-task {
+      margin-left: 10px;
+      cursor: pointer;
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>SEVEN TAEKR</h1>
+  <p style="text-align:center; font-size: 1.2rem;">Track your week BTS style 💜</p>
+
+  <div class="week-scroll" id="week-scroll"></div>
+  <div class="bts-week" id="bts-week"></div>
+
+  <script>
+    const btsDays = ["Suga Day", "RM Day", "Kookie Day", "Hobi Day", "Tae Day", "Jimin Day", "Jin Day"];
+    const weekScroll = document.getElementById("week-scroll");
+    const btsWeek = document.getElementById("bts-week");
+
+    const getWeekDates = (startDate, endDate) => {
+      return `${startDate.getDate()} ${startDate.toLocaleString('default', { month: 'short' })} - ${endDate.getDate()} ${endDate.toLocaleString('default', { month: 'short' })}`;
+    };
+
+    const startDate = new Date("2025-01-01");
+    let selectedButton = null; // Store the currently selected button
+
+    for (let w = 0; w < 52; w++) {
+      const weekStart = new Date(startDate);
+      if (w === 0) {
+        weekStart.setDate(1);
+        const weekEnd = new Date("2025-01-04");
+        const btn = document.createElement("button");
+        btn.innerText = `Week 1\n(${getWeekDates(weekStart, weekEnd)})`;
+        btn.onclick = () => loadWeek(`Week-1`, btn);
+        weekScroll.appendChild(btn);
+        continue;
+      }
+      weekStart.setDate(5 + (w - 1) * 7);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+
+      const btn = document.createElement("button");
+      btn.innerText = `Week ${w + 1}\n(${getWeekDates(weekStart, weekEnd)})`;
+      btn.onclick = () => loadWeek(`Week-${w + 1}`, btn);
+      weekScroll.appendChild(btn);
+    }
+
+    function loadWeek(weekId, clickedButton) {
+      // Remove purple heart from the previously selected button
+      if (selectedButton) {
+        selectedButton.classList.remove("selected");
+        selectedButton.innerHTML = selectedButton.innerHTML.replace(" 💜", "");
+      }
+
+      // Add purple heart to the newly selected button
+      clickedButton.classList.add("selected");
+      clickedButton.innerHTML += " 💜";
+      selectedButton = clickedButton; // Update the selected button reference
+
+      btsWeek.innerHTML = "";
+      btsWeek.classList.add("active");
+
+      btsDays.forEach((day, index) => {
+        const box = document.createElement("div");
+        box.classList.add("day-box");
+
+        const title = document.createElement("h3");
+        title.innerText = day;
+        box.appendChild(title);
+
+        const taskInput = document.createElement("input");
+        taskInput.placeholder = "Write a task...";
+
+        const addBtn = document.createElement("button");
+        addBtn.innerText = "+";
+        addBtn.className = "add-task";
+
+        const taskList = document.createElement("div");
+        taskList.className = "task-list";
+
+        // Load existing tasks from localStorage if they exist
+        const savedTasks = JSON.parse(localStorage.getItem(`${weekId}-day-${index}`)) || [];
+        savedTasks.forEach(task => {
+          const taskElement = createTaskElement(task.text, task.completed, weekId, index);
+          taskList.appendChild(taskElement);
+        });
+
+        addBtn.addEventListener("click", function () {
+          if (taskInput.value.trim() && taskList.childElementCount < 20) {
+            const task = taskInput.value.trim();
+            const taskElement = createTaskElement(task, false, weekId, index);
+            taskList.appendChild(taskElement);
+            saveTask(weekId, index, task, false);
+            taskInput.value = "";
+          }
+        });
+
+        box.appendChild(taskInput);
+        box.appendChild(addBtn);
+        box.appendChild(taskList);
+        btsWeek.appendChild(box);
+      });
+    }
+
+    // Function to create task element
+    function createTaskElement(task, completed, weekId, index) {
+      const taskDiv = document.createElement("div");
+      taskDiv.className = "task";
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = completed;
+      cb.onchange = () => toggleTaskCompletion(taskDiv, weekId, index, task);
+
+      const label = document.createElement("span");
+      label.innerText = task;
+
+      const deleteBtn = document.createElement("span");
+      deleteBtn.innerText = "❌"; // Cross mark for deletion
+      deleteBtn.classList.add("delete-task");
+      deleteBtn.onclick = () => deleteTask(taskDiv, weekId, index, task);
+
+      taskDiv.appendChild(cb);
+      taskDiv.appendChild(label);
+      taskDiv.appendChild(deleteBtn);
+
+      if (completed) {
+        taskDiv.classList.add("completed");
+      }
+
+      return taskDiv;
+    }
+
+    // Function to toggle task completion (strikethrough effect)
+    function toggleTaskCompletion(taskDiv, weekId, dayIndex, task) {
+      taskDiv.classList.toggle("completed");
+      const isChecked = taskDiv.classList.contains("completed");
+      saveTask(weekId, dayIndex, task, isChecked);
+    }
+
+    // Function to delete task
+    function deleteTask(taskDiv, weekId, dayIndex, task) {
+      taskDiv.remove();
+      removeTask(weekId, dayIndex, task); // Remove from localStorage
+    }
+
+    // Function to save tasks to localStorage
+    function saveTask(weekId, dayIndex, task, completed) {
+      const taskList = Array.from(btsWeek.querySelectorAll(`.day-box:nth-child(${dayIndex + 1}) .task-list .task`))
+        .map(taskElement => ({
+          text: taskElement.querySelector("span").innerText,
+          completed: taskElement.querySelector("input").checked
+        }));
+
+      localStorage.setItem(`${weekId}-day-${dayIndex}`, JSON.stringify(taskList));
+    }
+
+    // Function to remove a task from localStorage
+    function removeTask(weekId, dayIndex, task) {
+      const taskList = JSON.parse(localStorage.getItem(`${weekId}-day-${dayIndex}`)) || [];
+      const updatedTaskList = taskList.filter(t => t.text !== task);
+      localStorage.setItem(`${weekId}-day-${dayIndex}`, JSON.stringify(updatedTaskList));
+    }
+  </script>
+</body>
+</html>
